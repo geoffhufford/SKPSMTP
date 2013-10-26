@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>718D2802-A54E-4F62-B873-037882A0F73F</string>
+	<key>IDESourceControlProjectName</key>
+	<string>SMTPSender</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>35EFFBB8-AE77-4917-A456-B0B076A9BF62</key>
+		<string>https://github.com/phuongnq/SKPSMTP.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>Demo/SMTPSender.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>35EFFBB8-AE77-4917-A456-B0B076A9BF62</key>
+		<string>../../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/phuongnq/SKPSMTP.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>35EFFBB8-AE77-4917-A456-B0B076A9BF62</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>35EFFBB8-AE77-4917-A456-B0B076A9BF62</string>
+			<key>IDESourceControlWCCName</key>
+			<string>SKPSMTP</string>
+		</dict>
+	</array>
+</dict>
+</plist>
