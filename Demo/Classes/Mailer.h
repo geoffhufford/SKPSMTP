@@ -7,7 +7,10 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <CFNetwork/CFNetwork.h>
 
-@interface Mailer : NSObject
+#import "SKPSMTPMessage.h"
 
+@interface Mailer : NSObject <SKPSMTPMessageDelegate>
+- (void) sendMail;
 @end

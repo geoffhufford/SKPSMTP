@@ -31,6 +31,7 @@
 #import "SMTPSenderAppDelegate.h"
 #import "SKPSMTPMessage.h"
 #import "NSData+Base64Additions.h"
+#import "Mailer.h"
 
 @implementation SMTPSenderAppDelegate
 
@@ -39,11 +40,11 @@
 
 + (void)initialize {
     NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
-    NSMutableDictionary *defaultsDictionary = [NSMutableDictionary dictionaryWithObjectsAndKeys:@"me@example.com", @"fromEmail",
-                                               @"you@example.com", @"toEmail",
-                                               @"smtp.example.com", @"relayHost",
-                                               @"me@example.com", @"login",
-                                               @"SekritSquirrel", @"pass",
+    NSMutableDictionary *defaultsDictionary = [NSMutableDictionary dictionaryWithObjectsAndKeys:@"nquangphuong@gmail.com", @"fromEmail",
+                                               @"nquangphuong@gmail.com", @"toEmail",
+                                               @"smtp.gmail.com", @"relayHost",
+                                               @"nquangphuong@gmail.com", @"login",
+                                               @"yourpassword", @"pass",
                                                [NSNumber numberWithBool:YES], @"requiresAuth",
                                                [NSNumber numberWithBool:YES], @"wantsSecure", nil];
     
@@ -57,6 +58,8 @@
 - (void)applicationDidBecomeActive:(UIApplication *)application {
     [[NSUserDefaults standardUserDefaults] synchronize];
     [self updateTextView];
+    Mailer *testMailer = [[Mailer alloc] init];
+    [testMailer sendMail];
 }
 
 - (void)dealloc {
