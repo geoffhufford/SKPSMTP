@@ -29,9 +29,6 @@
 //
 
 #import <UIKit/UIKit.h>
-#import <CFNetwork/CFNetwork.h>
-
-#import "SKPSMTPMessage.h"
 
 @class SMTPSenderViewController;
 

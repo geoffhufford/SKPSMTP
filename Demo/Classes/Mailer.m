@@ -7,7 +7,7 @@
 //
 
 #import "Mailer.h"
-#import "SKPSMTPMessage.h"
+#import <CFNetwork/CFNetwork.h>
 
 @implementation Mailer
 - (void) sendMail {

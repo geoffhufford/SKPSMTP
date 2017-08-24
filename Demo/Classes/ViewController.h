@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "SKPSMTPMessage.h"
+#import <SMTPLibrary/SKPSMTPMessage.h>
 
 @interface ViewController : UIViewController <SKPSMTPMessageDelegate>
 

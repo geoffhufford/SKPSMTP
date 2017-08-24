@@ -12,9 +12,6 @@
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
 		AA2B6F21132F11520098E285 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = AA2B6F20132F11520098E285 /* Settings.bundle */; };
-		AA2C47D2133101AC008FDE01 /* HSK_CFUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = AA2C47CD133101AC008FDE01 /* HSK_CFUtilities.m */; };
-		AA2C47D3133101AC008FDE01 /* NSStream+SKPSMTPExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = AA2C47CF133101AC008FDE01 /* NSStream+SKPSMTPExtensions.m */; };
-		AA2C47D4133101AC008FDE01 /* SKPSMTPMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = AA2C47D1133101AC008FDE01 /* SKPSMTPMessage.m */; };
 		BC06F8EA1F4F18E6001CC2F7 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = BC06F8E91F4F18E6001CC2F7 /* Main.storyboard */; };
 		BC06F8ED1F4F19D0001CC2F7 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = BC06F8EC1F4F19D0001CC2F7 /* ViewController.m */; };
 		BC7BBD7E1F4F15B600F668C6 /* Mailer.m in Sources */ = {isa = PBXBuildFile; fileRef = BC7BBD7D1F4F15B600F668C6 /* Mailer.m */; };
@@ -36,12 +33,6 @@
 		880CC76CAF019D3876695D6F /* libPods-SMTPSender.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-SMTPSender.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA2B6F20132F11520098E285 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
-		AA2C47CC133101AC008FDE01 /* HSK_CFUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = HSK_CFUtilities.h; path = ../SMTPLibrary/HSK_CFUtilities.h; sourceTree = SOURCE_ROOT; };
-		AA2C47CD133101AC008FDE01 /* HSK_CFUtilities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = HSK_CFUtilities.m; path = ../SMTPLibrary/HSK_CFUtilities.m; sourceTree = SOURCE_ROOT; };
-		AA2C47CE133101AC008FDE01 /* NSStream+SKPSMTPExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSStream+SKPSMTPExtensions.h"; path = "../SMTPLibrary/NSStream+SKPSMTPExtensions.h"; sourceTree = SOURCE_ROOT; };
-		AA2C47CF133101AC008FDE01 /* NSStream+SKPSMTPExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSStream+SKPSMTPExtensions.m"; path = "../SMTPLibrary/NSStream+SKPSMTPExtensions.m"; sourceTree = SOURCE_ROOT; };
-		AA2C47D0133101AC008FDE01 /* SKPSMTPMessage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SKPSMTPMessage.h; path = ../SMTPLibrary/SKPSMTPMessage.h; sourceTree = SOURCE_ROOT; };
-		AA2C47D1133101AC008FDE01 /* SKPSMTPMessage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SKPSMTPMessage.m; path = ../SMTPLibrary/SKPSMTPMessage.m; sourceTree = SOURCE_ROOT; };
 		BC06F8E91F4F18E6001CC2F7 /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
 		BC06F8EB1F4F19D0001CC2F7 /* ViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		BC06F8EC1F4F19D0001CC2F7 /* ViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
@@ -88,10 +79,9 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		29B97314FDCFA39411CA2CEA = {
+		29B97314FDCFA39411CA2CEA /* CustomTemplate */ = {
 			isa = PBXGroup;
 			children = (
-				F1123CAD0EB8F89100DED5A8 /* Email (refresh from Handshake!) */,
 				080E96DDFE201D6D7F000001 /* UIClasses */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
@@ -142,20 +132,6 @@
 			name = Pods;
 			sourceTree = "<group>";
 		};
-		F1123CAD0EB8F89100DED5A8 /* Email (refresh from Handshake!) */ = {
-			isa = PBXGroup;
-			children = (
-				AA2C47CC133101AC008FDE01 /* HSK_CFUtilities.h */,
-				AA2C47CD133101AC008FDE01 /* HSK_CFUtilities.m */,
-				AA2C47CE133101AC008FDE01 /* NSStream+SKPSMTPExtensions.h */,
-				AA2C47CF133101AC008FDE01 /* NSStream+SKPSMTPExtensions.m */,
-				AA2C47D0133101AC008FDE01 /* SKPSMTPMessage.h */,
-				AA2C47D1133101AC008FDE01 /* SKPSMTPMessage.m */,
-			);
-			name = "Email (refresh from Handshake!)";
-			path = Classes;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -194,7 +170,7 @@
 			knownRegions = (
 				en,
 			);
-			mainGroup = 29B97314FDCFA39411CA2CEA;
+			mainGroup = 29B97314FDCFA39411CA2CEA /* CustomTemplate */;
 			productRefGroup = 19C28FACFE9D520D11CA2CBB /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -277,9 +253,6 @@
 				1D60589B0D05DD56006BFB54 /* main.m in Sources */,
 				BC7BBD7E1F4F15B600F668C6 /* Mailer.m in Sources */,
 				1D3623260D0F684500981E51 /* AppDelegate.m in Sources */,
-				AA2C47D2133101AC008FDE01 /* HSK_CFUtilities.m in Sources */,
-				AA2C47D3133101AC008FDE01 /* NSStream+SKPSMTPExtensions.m in Sources */,
-				AA2C47D4133101AC008FDE01 /* SKPSMTPMessage.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -298,7 +271,9 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = SMTPSender_Prefix.pch;
 				INFOPLIST_FILE = Info.plist;
-				OTHER_LDFLAGS = "-all_load";
+				OTHER_CFLAGS = "$(inherited)";
+				OTHER_CPLUSPLUSFLAGS = "$(inherited)";
+				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.yourcompany.${PRODUCT_NAME:identifier}";
 				PRODUCT_NAME = SMTPSender;
 			};
@@ -314,7 +289,9 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = SMTPSender_Prefix.pch;
 				INFOPLIST_FILE = Info.plist;
-				OTHER_LDFLAGS = "-all_load";
+				OTHER_CFLAGS = "$(inherited)";
+				OTHER_CPLUSPLUSFLAGS = "$(inherited)";
+				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.yourcompany.${PRODUCT_NAME:identifier}";
 				PRODUCT_NAME = SMTPSender;
 			};
