@@ -18,7 +18,7 @@ Note: If you choose to build these files as a static library, you must add the f
 
 You can add to your Podfile to integrate into your project. 
 
-    pod 'skpsmtpmessage'
+    pod 'SMTPLibrary'
 
 You might need to add the CFNetwork.framework to your linked files. 
 
