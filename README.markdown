@@ -1,6 +1,6 @@
 # About skpsmtpmessage
 
-A quick SMTP client for iOS. Fork of [skpsmtpmessage](http://code.google.com/p/skpsmtpmessage/), by Ian Baird.
+A quick SMTP client for iOS. Fork of [skpsmtpmessage](https://github.com/phuongnq/SKPSMTP), by Ian Baird.
 
 To use this in your app, add the files in the SMTPLibrary directory to your project.
 
