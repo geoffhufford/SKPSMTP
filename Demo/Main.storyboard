@@ -22,14 +22,14 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="PlL-bp-pD1">
-                                <rect key="frame" x="36" y="66" width="303" height="593"/>
+                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" scrollEnabled="NO" editable="NO" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="PlL-bp-pD1">
+                                <rect key="frame" x="36" y="66" width="303" height="233.5"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <string key="text">Lorem ipsum dolor sit er elit lamet, consectetaur cillium adipisicing pecu, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Nam liber te conscient to factor tum poen legum odioque civiuda.</string>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                             </textView>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ZwA-aS-ZFm">
+                            <button opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ZwA-aS-ZFm">
                                 <rect key="frame" x="137" y="28" width="101" height="30"/>
                                 <state key="normal" title="Send Message"/>
                                 <connections>
@@ -44,7 +44,7 @@
                             <constraint firstAttribute="trailingMargin" secondItem="PlL-bp-pD1" secondAttribute="trailing" constant="20" id="JIf-u3-u8Y"/>
                             <constraint firstItem="ZwA-aS-ZFm" firstAttribute="top" secondItem="IDg-qZ-pA0" secondAttribute="bottom" constant="8" symbolic="YES" id="dLH-pi-ED8"/>
                             <constraint firstItem="PlL-bp-pD1" firstAttribute="leading" secondItem="29s-Fa-acD" secondAttribute="leadingMargin" constant="20" id="r2F-GC-4q0"/>
-                            <constraint firstItem="Bhl-VG-ng0" firstAttribute="top" secondItem="PlL-bp-pD1" secondAttribute="bottom" constant="8" symbolic="YES" id="r50-fK-Wbk"/>
+                            <constraint firstItem="Bhl-VG-ng0" firstAttribute="top" relation="greaterThanOrEqual" secondItem="PlL-bp-pD1" secondAttribute="bottom" constant="8" symbolic="YES" id="r50-fK-Wbk"/>
                         </constraints>
                     </view>
                     <connections>
