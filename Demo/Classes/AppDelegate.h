@@ -1,9 +1,11 @@
-// 
-//  Base64Transcoder.h
-// 
-//  Created by Jonathan Wight on Tue Mar 18 2003.
-//  Copyright (c) 2003 Toxic Software. All rights reserved.
-// 
+//
+//  SMTPSenderAppDelegate.h
+//  SMTPSender
+//
+//  Created by Ian Baird on 10/28/08.
+//
+//  Copyright (c) 2008 Skorpiostech, Inc. All rights reserved.
+//
 //  Permission is hereby granted, free of charge, to any person
 //  obtaining a copy of this software and associated documentation
 //  files (the "Software"), to deal in the Software without
@@ -26,11 +28,14 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#include <UIKit/UIKit.h>
+#import <UIKit/UIKit.h>
+#import <CFNetwork/CFNetwork.h>
 
-extern size_t EstimateBas64EncodedDataSize(size_t inDataSize);
-extern size_t EstimateBas64DecodedDataSize(size_t inDataSize);
+#import "SKPSMTPMessage.h"
 
-extern bool Base64EncodeData(const void *inInputData, size_t inInputDataSize, char *outOutputData, size_t *ioOutputDataSize, BOOL wrapped);
-extern bool Base64DecodeData(const void *inInputData, size_t inInputDataSize, void *ioOutputData, size_t *ioOutputDataSize);
+@class SMTPSenderViewController;
+
+@interface AppDelegate : NSObject <UIApplicationDelegate>
+
+@end
 

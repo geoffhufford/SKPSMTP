@@ -8,7 +8,6 @@
 
 #import "Mailer.h"
 #import "SKPSMTPMessage.h"
-#import "NSData+Base64Additions.h"
 
 @implementation Mailer
 - (void) sendMail {
@@ -40,16 +39,23 @@
     // testMsg.validateSSLChain = NO;
     testMsg.delegate = self;
     
-    NSDictionary *plainPart = [NSDictionary dictionaryWithObjectsAndKeys:@"text/plain",kSKPSMTPPartContentTypeKey,
-                               @"This is a tést messåge.",kSKPSMTPPartMessageKey,@"8bit",kSKPSMTPPartContentTransferEncodingKey,nil];
+    NSDictionary *plainPart = @{
+                                kSKPSMTPPartContentTypeKey : @"text/plain",
+                                kSKPSMTPPartMessageKey : @"This is a tést messåge.",
+                                kSKPSMTPPartContentTransferEncodingKey : @"8bit"
+                                };
     
     NSString *vcfPath = [[NSBundle mainBundle] pathForResource:@"test" ofType:@"vcf"];
     NSData *vcfData = [NSData dataWithContentsOfFile:vcfPath];
     
-    NSDictionary *vcfPart = [NSDictionary dictionaryWithObjectsAndKeys:@"text/directory;\r\n\tx-unix-mode=0644;\r\n\tname=\"test.vcf\"",kSKPSMTPPartContentTypeKey,
-                             @"attachment;\r\n\tfilename=\"test.vcf\"",kSKPSMTPPartContentDispositionKey,[vcfData encodeBase64ForData],kSKPSMTPPartMessageKey,@"base64",kSKPSMTPPartContentTransferEncodingKey,nil];
+    NSDictionary *vcfPart = @{
+                              kSKPSMTPPartContentTypeKey : @"text/directory;\r\n\tx-unix-mode=0644;\r\n\tname=\"test.vcf\"",
+                              kSKPSMTPPartContentDispositionKey : @"attachment;\r\n\tfilename=\"test.vcf\"",
+                              kSKPSMTPPartMessageKey : [vcfData base64EncodedStringWithOptions:0],
+                              kSKPSMTPPartContentTransferEncodingKey : @"base64"
+                              };
     
-    testMsg.parts = [NSArray arrayWithObjects:plainPart,vcfPart,nil];
+    testMsg.parts = @[plainPart,vcfPart];
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         [testMsg send];
     });

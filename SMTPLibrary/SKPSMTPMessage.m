@@ -29,7 +29,6 @@
 
 #import <Foundation/Foundation.h>
 #import "SKPSMTPMessage.h"
-#import "NSData+Base64Additions.h"
 #import "NSStream+SKPSMTPExtensions.h"
 #import "HSK_CFUtilities.h"
 
@@ -43,9 +42,17 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
 
 @interface SKPSMTPMessage ()
 
-@property(nonatomic, retain) NSMutableString *inputString;
-@property(retain) NSTimer *connectTimer;
-@property(retain) NSTimer *watchdogTimer;
+// Auth support flags
+@property(nonatomic, assign) BOOL serverAuthCRAMMD5;
+@property(nonatomic, assign) BOOL serverAuthPLAIN;
+@property(nonatomic, assign) BOOL serverAuthLOGIN;
+@property(nonatomic, assign) BOOL serverAuthDIGESTMD5;
+
+// Content support flags
+@property(nonatomic, assign) BOOL server8bitMessages;
+
+@property(nonatomic, strong) NSTimer *connectTimer;
+@property(nonatomic, strong) NSTimer *watchdogTimer;
 
 - (void)parseBuffer;
 - (BOOL)sendParts;
@@ -58,11 +65,6 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
 @end
 
 @implementation SKPSMTPMessage
-
-@synthesize login, pass, relayHost, relayPorts, subject, fromEmail, toEmail, parts, requiresAuth, inputString, wantsSecure, \
-            delegate, connectTimer, connectTimeout, watchdogTimer, validateSSLChain;
-@synthesize ccEmail;
-@synthesize bccEmail;
 
 #pragma mark -
 #pragma mark Memory & Lifecycle
@@ -82,10 +84,10 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
         self.relayPorts = defaultPorts;
         
         // setup a default timeout (8 seconds)
-        connectTimeout = 8.0; 
+        self.connectTimeout = 8.0;
         
         // by default, validate the SSL chain
-        validateSSLChain = YES;
+        self.validateSSLChain = YES;
     }
     
     return self;
@@ -106,18 +108,14 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
     self.parts = nil;
     self.inputString = nil;
     
-    [inputStream release];
-    inputStream = nil;
+    self.inputStream = nil;
     
-    [outputStream release];
-    outputStream = nil;
+    self.outputStream = nil;
     
     [self.connectTimer invalidate];
     self.connectTimer = nil;
     
     [self stopWatchdog];
-    
-    [super dealloc];
 }
 
 - (id)copyWithZone:(NSZone *)zone
@@ -126,7 +124,7 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
     smtpMessageCopy.delegate = self.delegate;
     smtpMessageCopy.fromEmail = self.fromEmail;
     smtpMessageCopy.login = self.login;
-    smtpMessageCopy.parts = [[self.parts copy] autorelease];
+    smtpMessageCopy.parts = [self.parts copy];
     smtpMessageCopy.pass = self.pass;
     smtpMessageCopy.relayHost = self.relayHost;
     smtpMessageCopy.requiresAuth = self.requiresAuth;
@@ -158,8 +156,11 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
 - (void)stopWatchdog
 {
     NSLog(@"*** stopping watchdog ***");
-    [self.watchdogTimer invalidate];
-    self.watchdogTimer = nil;
+    if (self.watchdogTimer)
+    {
+        [self.watchdogTimer invalidate];
+        self.watchdogTimer = nil;
+    }
 }
 
 
@@ -170,17 +171,17 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
     [self cleanUpStreams];
     
     // No hard error if we're wating on a reply
-    if (sendState != kSKPSMTPWaitingQuitReply)
+    if (self.sendState != kSKPSMTPWaitingQuitReply)
     {
         NSError *error = [NSError errorWithDomain:@"SKPSMTPMessageError" 
                                              code:kSKPSMPTErrorConnectionTimeout 
                                          userInfo:[NSDictionary dictionaryWithObjectsAndKeys:NSLocalizedString(@"Timeout sending message.", @"server timeout fail error description"),NSLocalizedDescriptionKey,
                                                    NSLocalizedString(@"Try sending your message again later.", @"server generic error recovery"),NSLocalizedRecoverySuggestionErrorKey,nil]];
-        [delegate messageFailed:self error:error];
+        [self.delegate messageFailed:self error:error];
     }
     else
     {
-        [delegate messageSent:self];
+        [self.delegate messageSent:self];
     }
 }
 
@@ -189,7 +190,7 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
 
 - (BOOL)preflightCheckWithError:(NSError **)error {
     
-    CFHostRef host = CFHostCreateWithName(NULL, (CFStringRef)self.relayHost);
+    CFHostRef host = CFHostCreateWithName(NULL, (__bridge CFStringRef)self.relayHost);
     CFStreamError streamError;
     
     if (!CFHostStartInfoResolution(host, kCFHostAddresses, &streamError)) {
@@ -234,30 +235,30 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
 
 - (BOOL)send
 {
-    NSAssert(sendState == kSKPSMTPIdle, @"Message has already been sent!");
+    NSAssert(self.sendState == kSKPSMTPIdle, @"Message has already been sent!");
     
-    if (requiresAuth)
+    if (self.requiresAuth)
     {
-        NSAssert(login, @"auth requires login");
-        NSAssert(pass, @"auth requires pass");
+        NSAssert(self.login, @"auth requires login");
+        NSAssert(self.pass, @"auth requires pass");
     }
     
-    NSAssert(relayHost, @"send requires relayHost");
-    NSAssert(subject, @"send requires subject");
-    NSAssert(fromEmail, @"send requires fromEmail");
-    NSAssert(toEmail, @"send requires toEmail");
-    NSAssert(parts, @"send requires parts");
+    NSAssert(self.relayHost, @"send requires relayHost");
+    NSAssert(self.subject, @"send requires subject");
+    NSAssert(self.fromEmail, @"send requires fromEmail");
+    NSAssert(self.toEmail, @"send requires toEmail");
+    NSAssert(self.parts, @"send requires parts");
     
     NSError *error = nil;
     if (![self preflightCheckWithError:&error]) {
-        [delegate messageFailed:self error:error];
+        [self.delegate messageFailed:self error:error];
         return NO;
     }
     
-    if (![relayPorts count])
+    if (![self.relayPorts count])
     {
         dispatch_async(dispatch_get_main_queue(), ^{
-            [delegate messageFailed:self 
+            [self.delegate messageFailed:self
                               error:[NSError errorWithDomain:@"SKPSMTPMessageError" 
                                                         code:kSKPSMTPErrorConnectionFailed 
                                                     userInfo:[NSDictionary dictionaryWithObjectsAndKeys:NSLocalizedString(@"Unable to connect to the server.", @"server connection fail error description"),NSLocalizedDescriptionKey,
@@ -269,33 +270,38 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
     }
     
     // Grab the next relay port
-    short relayPort = [[relayPorts objectAtIndex:0] shortValue];
+    short relayPort = [[self.relayPorts objectAtIndex:0] shortValue];
     
     // Pop this off the head of the queue.
+    NSArray *relayPorts = self.relayPorts;
     self.relayPorts = ([relayPorts count] > 1) ? [relayPorts subarrayWithRange:NSMakeRange(1, [relayPorts count] - 1)] : [NSArray array];
     
-    NSLog(@"C: Attempting to connect to server at: %@:%d", relayHost, relayPort);
+    NSLog(@"C: Attempting to connect to server at: %@:%d", self.relayHost, relayPort);
     
     
-    self.connectTimer = [NSTimer timerWithTimeInterval:connectTimeout target:self selector:@selector(connectionConnectedCheck:) userInfo:nil repeats:NO];
+    self.connectTimer = [NSTimer timerWithTimeInterval:self.connectTimeout target:self selector:@selector(connectionConnectedCheck:) userInfo:nil repeats:NO];
     [[NSRunLoop mainRunLoop] addTimer:self.connectTimer forMode:NSDefaultRunLoopMode];
 
-    [NSStream getStreamsToHostNamed:relayHost port:relayPort inputStream:&inputStream outputStream:&outputStream];
-    if ((inputStream != nil) && (outputStream != nil))
+    NSOutputStream *outputStream = self.outputStream;
     {
-        sendState = kSKPSMTPConnecting;
-        isSecure = NO;
+        NSInputStream *inputStream = self.inputStream;
+        [NSStream getStreamsToHostNamed:self.relayHost port:relayPort inputStream:&inputStream outputStream:&outputStream];
+        self.inputStream = inputStream;
+        self.outputStream = outputStream;
+    }
+    
+    if ((self.inputStream != nil) && (self.outputStream != nil))
+    {
+        self.sendState = kSKPSMTPConnecting;
+        self.isSecure = NO;
         
-        [inputStream retain];
-        [outputStream retain];
+        [self.inputStream setDelegate:self];
+        [self.outputStream setDelegate:self];
         
-        [inputStream setDelegate:self];
-        [outputStream setDelegate:self];
-        
-        [inputStream scheduleInRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
-        [outputStream scheduleInRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
-        [inputStream open];
-        [outputStream open];
+        [self.inputStream scheduleInRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
+        [self.outputStream scheduleInRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
+        [self.inputStream open];
+        [self.outputStream open];
         
         self.inputString = [NSMutableString string];
         
@@ -308,7 +314,7 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
         [self.connectTimer invalidate];
         self.connectTimer = nil;
         
-        [delegate messageFailed:self 
+        [self.delegate messageFailed:self
                           error:[NSError errorWithDomain:@"SKPSMTPMessageError" 
                                                     code:kSKPSMTPErrorConnectionFailed 
                                                 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:NSLocalizedString(@"Unable to connect to the server.", @"server connection fail error description"),NSLocalizedDescriptionKey,
@@ -329,13 +335,12 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
         {
             uint8_t buf[1024];
             memset(buf, 0, sizeof(uint8_t) * 1024);
-            unsigned int len = 0;
+            NSInteger len = 0;
             len = [(NSInputStream *)stream read:buf maxLength:1024];
             if(len) 
             {
                 NSString *tmpStr = [[NSString alloc] initWithBytes:buf length:len encoding:NSUTF8StringEncoding];
-                [inputString appendString:tmpStr];
-                [tmpStr release];
+                [self.inputString appendString:tmpStr];
                 
                 [self parseBuffer];
             }
@@ -347,12 +352,11 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
             [stream close];
             [stream removeFromRunLoop:[NSRunLoop currentRunLoop]
                               forMode:NSDefaultRunLoopMode];
-            [stream release];
             stream = nil; // stream is ivar, so reinit it
             
-            if (sendState != kSKPSMTPMessageSent)
+            if (self.sendState != kSKPSMTPMessageSent)
             {
-                [delegate messageFailed:self 
+                [self.delegate messageFailed:self
                                   error:[NSError errorWithDomain:@"SKPSMTPMessageError" 
                                                             code:kSKPSMTPErrorConnectionInterrupted 
                                                         userInfo:[NSDictionary dictionaryWithObjectsAndKeys:NSLocalizedString(@"The connection to the server was interrupted.", @"server connection interrupted error description"),NSLocalizedDescriptionKey,
@@ -362,6 +366,7 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
             
             break;
         }
+        default: break;
     }
 }
             
@@ -404,7 +409,7 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
 - (void)parseBuffer
 {
     // Pull out the next line
-    NSScanner *scanner = [NSScanner scannerWithString:inputString];
+    NSScanner *scanner = [NSScanner scannerWithString:self.inputString];
     NSString *tmpLine = nil;
     
     NSError *error = nil;
@@ -420,20 +425,20 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
             [self stopWatchdog];
             
             NSLog(@"S: %@", tmpLine);
-            switch (sendState)
+            switch (self.sendState)
             {
                 case kSKPSMTPConnecting:
                 {
                     if ([tmpLine hasPrefix:@"220 "])
                     {
                         
-                        sendState = kSKPSMTPWaitingEHLOReply;
+                        self.sendState = kSKPSMTPWaitingEHLOReply;
                         
                         NSString *ehlo = [NSString stringWithFormat:@"EHLO %@\r\n", @"localhost"];
                         NSLog(@"C: %@", ehlo);
-                        if (CFWriteStreamWriteFully((CFWriteStreamRef)outputStream, (const uint8_t *)[ehlo UTF8String], [ehlo lengthOfBytesUsingEncoding:NSUTF8StringEncoding]) < 0)
+                        if (CFWriteStreamWriteFully((__bridge CFWriteStreamRef)self.outputStream, (const uint8_t *)[ehlo UTF8String], [ehlo lengthOfBytesUsingEncoding:NSUTF8StringEncoding]) < 0)
                         {
-                            error =  [outputStream streamError];
+                            error =  [self.outputStream streamError];
                             encounteredError = YES;
                         }
                         else
@@ -452,41 +457,41 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
                         testRange = [tmpLine rangeOfString:@"CRAM-MD5"];
                         if (testRange.location != NSNotFound)
                         {
-                            serverAuthCRAMMD5 = YES;
+                            self.serverAuthCRAMMD5 = YES;
                         }
                         
                         testRange = [tmpLine rangeOfString:@"PLAIN"];
                         if (testRange.location != NSNotFound)
                         {
-                            serverAuthPLAIN = YES;
+                            self.serverAuthPLAIN = YES;
                         }
                         
                         testRange = [tmpLine rangeOfString:@"LOGIN"];
                         if (testRange.location != NSNotFound)
                         {
-                            serverAuthLOGIN = YES;
+                            self.serverAuthLOGIN = YES;
                         }
                         
                         testRange = [tmpLine rangeOfString:@"DIGEST-MD5"];
                         if (testRange.location != NSNotFound)
                         {
-                            serverAuthDIGESTMD5 = YES;
+                            self.serverAuthDIGESTMD5 = YES;
                         }
                     }
                     else if ([tmpLine hasPrefix:@"250-8BITMIME"])
                     {
-                        server8bitMessages = YES;
+                        self.server8bitMessages = YES;
                     }
-                    else if ([tmpLine hasPrefix:@"250-STARTTLS"] && !isSecure && wantsSecure)
+                    else if ([tmpLine hasPrefix:@"250-STARTTLS"] && !self.isSecure && self.wantsSecure)
                     {
                         // if we're not already using TLS, start it up
-                        sendState = kSKPSMTPWaitingTLSReply;
+                        self.sendState = kSKPSMTPWaitingTLSReply;
                         
                         NSString *startTLS = @"STARTTLS\r\n";
                         NSLog(@"C: %@", startTLS);
-                        if (CFWriteStreamWriteFully((CFWriteStreamRef)outputStream, (const uint8_t *)[startTLS UTF8String], [startTLS lengthOfBytesUsingEncoding:NSUTF8StringEncoding]) < 0)
+                        if (CFWriteStreamWriteFully((__bridge CFWriteStreamRef)self.outputStream, (const uint8_t *)[startTLS UTF8String], [startTLS lengthOfBytesUsingEncoding:NSUTF8StringEncoding]) < 0)
                         {
-                            error =  [outputStream streamError];
+                            error =  [self.outputStream streamError];
                             encounteredError = YES;
                         }
                         else
@@ -499,15 +504,15 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
                         if (self.requiresAuth)
                         {
                             // Start up auth
-                            if (serverAuthPLAIN)
+                            if (self.serverAuthPLAIN)
                             {
-                                sendState = kSKPSMTPWaitingAuthSuccess;
-                                NSString *loginString = [NSString stringWithFormat:@"\000%@\000%@", login, pass];
-                                NSString *authString = [NSString stringWithFormat:@"AUTH PLAIN %@\r\n", [[loginString dataUsingEncoding:NSUTF8StringEncoding] encodeBase64ForData]];
+                                self.sendState = kSKPSMTPWaitingAuthSuccess;
+                                NSString *loginString = [NSString stringWithFormat:@"\000%@\000%@", _login, _pass];
+                                NSString *authString = [NSString stringWithFormat:@"AUTH PLAIN %@\r\n", [[loginString dataUsingEncoding:NSUTF8StringEncoding] base64EncodedStringWithOptions:0]];
                                 NSLog(@"C: %@", authString);
-                                if (CFWriteStreamWriteFully((CFWriteStreamRef)outputStream, (const uint8_t *)[authString UTF8String], [authString lengthOfBytesUsingEncoding:NSUTF8StringEncoding]) < 0)
+                                if (CFWriteStreamWriteFully((__bridge CFWriteStreamRef)self.outputStream, (const uint8_t *)[authString UTF8String], [authString lengthOfBytesUsingEncoding:NSUTF8StringEncoding]) < 0)
                                 {
-                                    error =  [outputStream streamError];
+                                    error =  [self.outputStream streamError];
                                     encounteredError = YES;
                                 }
                                 else
@@ -515,14 +520,14 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
                                     [self startShortWatchdog];
                                 }
                             }
-                            else if (serverAuthLOGIN)
+                            else if (self.serverAuthLOGIN)
                             {
-                                sendState = kSKPSMTPWaitingLOGINUsernameReply;
+                                self.sendState = kSKPSMTPWaitingLOGINUsernameReply;
                                 NSString *authString = @"AUTH LOGIN\r\n";
                                 NSLog(@"C: %@", authString);
-                                if (CFWriteStreamWriteFully((CFWriteStreamRef)outputStream, (const uint8_t *)[authString UTF8String], [authString lengthOfBytesUsingEncoding:NSUTF8StringEncoding]) < 0)
+                                if (CFWriteStreamWriteFully((__bridge CFWriteStreamRef)self.outputStream, (const uint8_t *)[authString UTF8String], [authString lengthOfBytesUsingEncoding:NSUTF8StringEncoding]) < 0)
                                 {
-                                    error =  [outputStream streamError];
+                                    error =  [self.outputStream streamError];
                                     encounteredError = YES;
                                 }
                                 else
@@ -544,13 +549,13 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
                         else
                         {
                             // Start up send from
-                            sendState = kSKPSMTPWaitingFromReply;
+                            self.sendState = kSKPSMTPWaitingFromReply;
                             
-                            NSString *mailFrom = [NSString stringWithFormat:@"MAIL FROM:<%@>\r\n", fromEmail];
+                            NSString *mailFrom = [NSString stringWithFormat:@"MAIL FROM:<%@>\r\n", self.fromEmail];
                             NSLog(@"C: %@", mailFrom);
-                            if (CFWriteStreamWriteFully((CFWriteStreamRef)outputStream, (const uint8_t *)[mailFrom UTF8String], [mailFrom lengthOfBytesUsingEncoding:NSUTF8StringEncoding]) < 0)
+                            if (CFWriteStreamWriteFully((__bridge CFWriteStreamRef)self.outputStream, (const uint8_t *)[mailFrom UTF8String], [mailFrom lengthOfBytesUsingEncoding:NSUTF8StringEncoding]) < 0)
                             {
-                                error =  [outputStream streamError];
+                                error =  [self.outputStream streamError];
                                 encounteredError = YES;
                             }
                             else
@@ -578,28 +583,31 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
                             NSLog(@"WARNING: Will not validate SSL chain!!!");
                             
                             CFDictionarySetValue(sslOptions, kCFStreamSSLValidatesCertificateChain, kCFBooleanFalse);
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
                             CFDictionarySetValue(sslOptions, kCFStreamSSLAllowsExpiredCertificates, kCFBooleanTrue);
                             CFDictionarySetValue(sslOptions, kCFStreamSSLAllowsExpiredRoots, kCFBooleanTrue);
                             CFDictionarySetValue(sslOptions, kCFStreamSSLAllowsAnyRoot, kCFBooleanTrue);
+#pragma clang diagnostic pop
                         }
                         
                         NSLog(@"Beginning TLSv1...");
                         
-                        CFReadStreamSetProperty((CFReadStreamRef)inputStream, kCFStreamPropertySSLSettings, sslOptions);
-                        CFWriteStreamSetProperty((CFWriteStreamRef)outputStream, kCFStreamPropertySSLSettings, sslOptions);
+                        CFReadStreamSetProperty((CFReadStreamRef)self.inputStream, kCFStreamPropertySSLSettings, sslOptions);
+                        CFWriteStreamSetProperty((CFWriteStreamRef)self.outputStream, kCFStreamPropertySSLSettings, sslOptions);
                         
                         CFRelease(sslOptions);
                         
                         // restart the connection
-                        sendState = kSKPSMTPWaitingEHLOReply;
-                        isSecure = YES;
+                        self.sendState = kSKPSMTPWaitingEHLOReply;
+                        self.isSecure = YES;
                         
                         NSString *ehlo = [NSString stringWithFormat:@"EHLO %@\r\n", @"localhost"];
                         NSLog(@"C: %@", ehlo);
                         
-                        if (CFWriteStreamWriteFully((CFWriteStreamRef)outputStream, (const uint8_t *)[ehlo UTF8String], [ehlo lengthOfBytesUsingEncoding:NSUTF8StringEncoding]) < 0)
+                        if (CFWriteStreamWriteFully((__bridge CFWriteStreamRef)self.outputStream, (const uint8_t *)[ehlo UTF8String], [ehlo lengthOfBytesUsingEncoding:NSUTF8StringEncoding]) < 0)
                         {
-                            error =  [outputStream streamError];
+                            error =  [self.outputStream streamError];
                             encounteredError = YES;
                         }
                         else
@@ -624,13 +632,13 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
                 {
                     if ([tmpLine hasPrefix:@"334 VXNlcm5hbWU6"])
                     {
-                        sendState = kSKPSMTPWaitingLOGINPasswordReply;
+                        self.sendState = kSKPSMTPWaitingLOGINPasswordReply;
                         
-                        NSString *authString = [NSString stringWithFormat:@"%@\r\n", [[login dataUsingEncoding:NSUTF8StringEncoding] encodeBase64ForData]];
+                        NSString *authString = [NSString stringWithFormat:@"%@\r\n", [[self.login dataUsingEncoding:NSUTF8StringEncoding] base64EncodedStringWithOptions:0]];
                         NSLog(@"C: %@", authString);
-                        if (CFWriteStreamWriteFully((CFWriteStreamRef)outputStream, (const uint8_t *)[authString UTF8String], [authString lengthOfBytesUsingEncoding:NSUTF8StringEncoding]) < 0)
+                        if (CFWriteStreamWriteFully((__bridge CFWriteStreamRef)self.outputStream, (const uint8_t *)[authString UTF8String], [authString lengthOfBytesUsingEncoding:NSUTF8StringEncoding]) < 0)
                         {
-                            error =  [outputStream streamError];
+                            error =  [self.outputStream streamError];
                             encounteredError = YES;
                         }
                         else
@@ -645,13 +653,13 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
                 {
                     if ([tmpLine hasPrefix:@"334 UGFzc3dvcmQ6"])
                     {
-                        sendState = kSKPSMTPWaitingAuthSuccess;
+                        self.sendState = kSKPSMTPWaitingAuthSuccess;
                         
-                        NSString *authString = [NSString stringWithFormat:@"%@\r\n", [[pass dataUsingEncoding:NSUTF8StringEncoding] encodeBase64ForData]];
+                        NSString *authString = [NSString stringWithFormat:@"%@\r\n", [[self.pass dataUsingEncoding:NSUTF8StringEncoding] base64EncodedStringWithOptions:0]];
                         NSLog(@"C: %@", authString);
-                        if (CFWriteStreamWriteFully((CFWriteStreamRef)outputStream, (const uint8_t *)[authString UTF8String], [authString lengthOfBytesUsingEncoding:NSUTF8StringEncoding]) < 0)
+                        if (CFWriteStreamWriteFully((__bridge CFWriteStreamRef)self.outputStream, (const uint8_t *)[authString UTF8String], [authString lengthOfBytesUsingEncoding:NSUTF8StringEncoding]) < 0)
                         {
-                            error =  [outputStream streamError];
+                            error =  [self.outputStream streamError];
                             encounteredError = YES;
                         }
                         else
@@ -666,13 +674,13 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
                 {
                     if ([tmpLine hasPrefix:@"235 "])
                     {
-                        sendState = kSKPSMTPWaitingFromReply;
+                        self.sendState = kSKPSMTPWaitingFromReply;
                         
-                        NSString *mailFrom = server8bitMessages ? [NSString stringWithFormat:@"MAIL FROM:<%@> BODY=8BITMIME\r\n", fromEmail] : [NSString stringWithFormat:@"MAIL FROM:<%@>\r\n", fromEmail];
+                        NSString *mailFrom = self.server8bitMessages ? [NSString stringWithFormat:@"MAIL FROM:<%@> BODY=8BITMIME\r\n", self.fromEmail] : [NSString stringWithFormat:@"MAIL FROM:<%@>\r\n", self.fromEmail];
                         NSLog(@"C: %@", mailFrom);
-                        if (CFWriteStreamWriteFully((CFWriteStreamRef)outputStream, (const uint8_t *)[mailFrom cStringUsingEncoding:NSASCIIStringEncoding], [mailFrom lengthOfBytesUsingEncoding:NSASCIIStringEncoding]) < 0)
+                        if (CFWriteStreamWriteFully((__bridge CFWriteStreamRef)self.outputStream, (const uint8_t *)[mailFrom cStringUsingEncoding:NSASCIIStringEncoding], [mailFrom lengthOfBytesUsingEncoding:NSASCIIStringEncoding]) < 0)
                         {
-                            error =  [outputStream streamError];
+                            error =  [self.outputStream streamError];
                             encounteredError = YES;
                         }
                         else
@@ -697,17 +705,17 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
 					// toc 2009-02-18 begin changes to support cc & bcc
 					
                     if ([tmpLine hasPrefix:@"250 "]) {
-                        sendState = kSKPSMTPWaitingToReply;
+                        self.sendState = kSKPSMTPWaitingToReply;
                         
 						NSMutableString	*multipleRcptTo = [NSMutableString string];
-						[multipleRcptTo appendString:[self formatAddresses:toEmail]];
-						[multipleRcptTo appendString:[self formatAddresses:ccEmail]];
-						[multipleRcptTo appendString:[self formatAddresses:bccEmail]];
+						[multipleRcptTo appendString:[self formatAddresses:self.toEmail]];
+						[multipleRcptTo appendString:[self formatAddresses:self.ccEmail]];
+						[multipleRcptTo appendString:[self formatAddresses:self.bccEmail]];
 																		
                         NSLog(@"C: %@", multipleRcptTo);
-                        if (CFWriteStreamWriteFully((CFWriteStreamRef)outputStream, (const uint8_t *)[multipleRcptTo UTF8String], [multipleRcptTo lengthOfBytesUsingEncoding:NSUTF8StringEncoding]) < 0)
+                        if (CFWriteStreamWriteFully((__bridge CFWriteStreamRef)self.outputStream, (const uint8_t *)[multipleRcptTo UTF8String], [multipleRcptTo lengthOfBytesUsingEncoding:NSUTF8StringEncoding]) < 0)
                         {
-                            error =  [outputStream streamError];
+                            error =  [self.outputStream streamError];
                             encounteredError = YES;
                         }
                         else
@@ -721,13 +729,13 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
                 {
                     if ([tmpLine hasPrefix:@"250 "])
                     {
-                        sendState = kSKPSMTPWaitingForEnterMail;
+                        self.sendState = kSKPSMTPWaitingForEnterMail;
                         
                         NSString *dataString = @"DATA\r\n";
                         NSLog(@"C: %@", dataString);
-                        if (CFWriteStreamWriteFully((CFWriteStreamRef)outputStream, (const uint8_t *)[dataString UTF8String], [dataString lengthOfBytesUsingEncoding:NSUTF8StringEncoding]) < 0)
+                        if (CFWriteStreamWriteFully((__bridge CFWriteStreamRef)self.outputStream, (const uint8_t *)[dataString UTF8String], [dataString lengthOfBytesUsingEncoding:NSUTF8StringEncoding]) < 0)
                         {
-                            error =  [outputStream streamError];
+                            error =  [self.outputStream streamError];
                             encounteredError = YES;
                         }
                         else
@@ -757,11 +765,11 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
                 {
                     if ([tmpLine hasPrefix:@"354 "])
                     {
-                        sendState = kSKPSMTPWaitingSendSuccess;
+                        self.sendState = kSKPSMTPWaitingSendSuccess;
                         
                         if (![self sendParts])
                         {
-                            error =  [outputStream streamError];
+                            error =  [self.outputStream streamError];
                             encounteredError = YES;
                         }
                     }
@@ -771,13 +779,13 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
                 {
                     if ([tmpLine hasPrefix:@"250 "])
                     {
-                        sendState = kSKPSMTPWaitingQuitReply;
+                        self.sendState = kSKPSMTPWaitingQuitReply;
                         
                         NSString *quitString = @"QUIT\r\n";
                         NSLog(@"C: %@", quitString);
-                        if (CFWriteStreamWriteFully((CFWriteStreamRef)outputStream, (const uint8_t *)[quitString UTF8String], [quitString lengthOfBytesUsingEncoding:NSUTF8StringEncoding]) < 0)
+                        if (CFWriteStreamWriteFully((__bridge CFWriteStreamRef)self.outputStream, (const uint8_t *)[quitString UTF8String], [quitString lengthOfBytesUsingEncoding:NSUTF8StringEncoding]) < 0)
                         {
-                            error =  [outputStream streamError];
+                            error =  [self.outputStream streamError];
                             encounteredError = YES;
                         }
                         else
@@ -798,7 +806,7 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
                 {
                     if ([tmpLine hasPrefix:@"221 "])
                     {
-                        sendState = kSKPSMTPMessageSent;
+                        self.sendState = kSKPSMTPMessageSent;
                         
                         messageSent = YES;
                     }
@@ -811,19 +819,19 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
             break;
         }
     }
-    self.inputString = [[[inputString substringFromIndex:[scanner scanLocation]] mutableCopy] autorelease];
+    self.inputString = [[self.inputString substringFromIndex:[scanner scanLocation]] mutableCopy];
     
     if (messageSent)
     {
         [self cleanUpStreams];
         
-        [delegate messageSent:self];
+        [self.delegate messageSent:self];
     }
     else if (encounteredError)
     {
         [self cleanUpStreams];
         
-        [delegate messageFailed:self error:error];
+        [self.delegate messageFailed:self error:error];
     }
 }
 
@@ -833,7 +841,7 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
     static NSString *separatorString = @"--SKPSMTPMessage--Separator--Delimiter\r\n";
     
 	CFUUIDRef	uuidRef   = CFUUIDCreate(kCFAllocatorDefault);
-	NSString	*uuid     = (NSString *)CFUUIDCreateString(kCFAllocatorDefault, uuidRef);
+	NSString	*uuid     = (NSString *)CFBridgingRelease(CFUUIDCreateString(kCFAllocatorDefault, uuidRef));
 	CFRelease(uuidRef);
     
     NSDate *now = [[NSDate alloc] init];
@@ -843,12 +851,8 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
 	
 	[message appendFormat:@"Date: %@\r\n", [dateFormatter stringFromDate:now]];
 	[message appendFormat:@"Message-id: <%@@%@>\r\n", [(NSString *)uuid stringByReplacingOccurrencesOfString:@"-" withString:@""], self.relayHost];
-	
-    [now release];
-    [dateFormatter release];
-    [uuid release];
     
-    [message appendFormat:@"From:%@\r\n", fromEmail];
+    [message appendFormat:@"From:%@\r\n", self.fromEmail];
 	
     
 	if ((self.toEmail != nil) && (![self.toEmail isEqualToString:@""])) 
@@ -863,21 +867,20 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
     
     [message appendString:@"Content-Type: multipart/mixed; boundary=SKPSMTPMessage--Separator--Delimiter\r\n"];
     [message appendString:@"Mime-Version: 1.0 (SKPSMTPMessage 1.0)\r\n"];
-    [message appendFormat:@"Subject:%@\r\n\r\n",subject];
+    [message appendFormat:@"Subject:%@\r\n\r\n",self.subject];
     [message appendString:separatorString];
     
     NSData *messageData = [message dataUsingEncoding:NSUTF8StringEncoding allowLossyConversion:YES];
-    [message release];
     
     NSLog(@"C: %s", [messageData bytes]);
-    if (CFWriteStreamWriteFully((CFWriteStreamRef)outputStream, (const uint8_t *)[messageData bytes], [messageData length]) < 0)
+    if (CFWriteStreamWriteFully((__bridge CFWriteStreamRef)self.outputStream, (const uint8_t *)[messageData bytes], [messageData length]) < 0)
     {
         return NO;
     }
     
     message = [[NSMutableString alloc] init];
     
-    for (NSDictionary *part in parts)
+    for (NSDictionary *part in self.parts)
     {
         if ([part objectForKey:kSKPSMTPPartContentDispositionKey])
         {
@@ -893,34 +896,30 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
     [message appendString:@"\r\n.\r\n"];
     
     NSLog(@"C: %@", message);
-    if (CFWriteStreamWriteFully((CFWriteStreamRef)outputStream, (const uint8_t *)[message UTF8String], [message lengthOfBytesUsingEncoding:NSUTF8StringEncoding]) < 0)
+    if (CFWriteStreamWriteFully((__bridge CFWriteStreamRef)self.outputStream, (const uint8_t *)[message UTF8String], [message lengthOfBytesUsingEncoding:NSUTF8StringEncoding]) < 0)
     {
-        [message release];
         return NO;
     }
     [self startLongWatchdog];
-    [message release];
     return YES;
 }
 
 - (void)connectionConnectedCheck:(NSTimer *)aTimer
 {
-    if (sendState == kSKPSMTPConnecting)
+    if (self.sendState == kSKPSMTPConnecting)
     {
-        [inputStream close];
-        [inputStream removeFromRunLoop:[NSRunLoop currentRunLoop]
+        [self.inputStream close];
+        [self.inputStream removeFromRunLoop:[NSRunLoop currentRunLoop]
                                forMode:NSDefaultRunLoopMode];
-        [inputStream release];
-        inputStream = nil;
+        self.inputStream = nil;
         
-        [outputStream close];
-        [outputStream removeFromRunLoop:[NSRunLoop currentRunLoop]
+        [self.outputStream close];
+        [self.outputStream removeFromRunLoop:[NSRunLoop currentRunLoop]
                                 forMode:NSDefaultRunLoopMode];
-        [outputStream release];
-        outputStream = nil;
+        self.outputStream = nil;
         
         // Try the next port - if we don't have another one to try, this will fail
-        sendState = kSKPSMTPIdle;
+        self.sendState = kSKPSMTPIdle;
         [self send];
     }
     
@@ -930,17 +929,15 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
 
 - (void)cleanUpStreams
 {
-    [inputStream close];
-    [inputStream removeFromRunLoop:[NSRunLoop currentRunLoop]
+    [self.inputStream close];
+    [self.inputStream removeFromRunLoop:[NSRunLoop currentRunLoop]
                            forMode:NSDefaultRunLoopMode];
-    [inputStream release];
-    inputStream = nil;
+    self.inputStream = nil;
     
-    [outputStream close];
-    [outputStream removeFromRunLoop:[NSRunLoop currentRunLoop]
+    [self.outputStream close];
+    [self.outputStream removeFromRunLoop:[NSRunLoop currentRunLoop]
                             forMode:NSDefaultRunLoopMode];
-    [outputStream release];
-    outputStream = nil;
+    self.outputStream = nil;
 }
 
 @end

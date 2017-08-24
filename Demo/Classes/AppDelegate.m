@@ -1,8 +1,8 @@
 //
-//  SMTPSenderAppDelegate.h
+//  SMTPSenderAppDelegate.m
 //  SMTPSender
 //
-//  Created by Ian Baird on 10/28/08.
+//  Created by Ian Baird on 10/28/2008.
 //
 //  Copyright (c) 2008 Skorpiostech, Inc. All rights reserved.
 //
@@ -28,21 +28,21 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#import <UIKit/UIKit.h>
-#import <CFNetwork/CFNetwork.h>
+#import "AppDelegate.h"
 
-#import "SKPSMTPMessage.h"
+@implementation AppDelegate
 
-@class SMTPSenderViewController;
+@synthesize window;
 
-@interface SMTPSenderAppDelegate : NSObject <UIApplicationDelegate, SKPSMTPMessageDelegate> {
-    UIWindow *window;
+- (void)applicationDidFinishLaunching:(UIApplication *)application {
+    
+    // Override point for customization after app launch
 }
-@property (nonatomic, retain) IBOutlet UITextView *textView;
-@property (nonatomic, retain) IBOutlet UIWindow *window;
+- (void)applicationDidBecomeActive:(UIApplication *)application {
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
 
-- (IBAction)sendMessage:(id)sender;
-- (void)updateTextView;
++ (void)initialize {
+}
 
 @end
-

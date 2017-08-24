@@ -75,66 +75,31 @@ extern NSString *kSKPSMTPPartContentTransferEncodingKey;
 @end
 
 @interface SKPSMTPMessage : NSObject <NSCopying, NSStreamDelegate>
-{
-    NSString *login;
-    NSString *pass;
-    NSString *relayHost;
-    NSArray *relayPorts;
-    
-    NSString *subject;
-    NSString *fromEmail;
-    NSString *toEmail;
-	NSString *ccEmail;
-	NSString *bccEmail;
-    NSArray *parts;
-    
-    NSOutputStream *outputStream;
-    NSInputStream *inputStream;
-    
-    BOOL requiresAuth;
-    BOOL wantsSecure;
-    BOOL validateSSLChain;
-    
-    SKPSMTPState sendState;
-    BOOL isSecure;
-    NSMutableString *inputString;
-    
-    // Auth support flags
-    BOOL serverAuthCRAMMD5;
-    BOOL serverAuthPLAIN;
-    BOOL serverAuthLOGIN;
-    BOOL serverAuthDIGESTMD5;
-    
-    // Content support flags
-    BOOL server8bitMessages;
-    
-    id <SKPSMTPMessageDelegate> delegate;
-    
-    NSTimeInterval connectTimeout;
-    
-    NSTimer *connectTimer;
-    NSTimer *watchdogTimer;
-}
 
-@property(nonatomic, retain) NSString *login;
-@property(nonatomic, retain) NSString *pass;
-@property(nonatomic, retain) NSString *relayHost;
+@property(nonatomic, strong) NSString *login;
+@property(nonatomic, strong) NSString *pass;
+@property(nonatomic, strong) NSString *relayHost;
 
-@property(nonatomic, retain) NSArray *relayPorts;
+@property(nonatomic, strong) NSArray *relayPorts;
 @property(nonatomic, assign) BOOL requiresAuth;
 @property(nonatomic, assign) BOOL wantsSecure;
 @property(nonatomic, assign) BOOL validateSSLChain;
 
-@property(nonatomic, retain) NSString *subject;
-@property(nonatomic, retain) NSString *fromEmail;
-@property(nonatomic, retain) NSString *toEmail;
-@property(nonatomic, retain) NSString *ccEmail;
-@property(nonatomic, retain) NSString *bccEmail;
-@property(nonatomic, retain) NSArray *parts;
+@property(nonatomic, strong) NSString *subject;
+@property(nonatomic, strong) NSString *fromEmail;
+@property(nonatomic, strong) NSString *toEmail;
+@property(nonatomic, strong) NSString *ccEmail;
+@property(nonatomic, strong) NSString *bccEmail;
+@property(nonatomic, strong) NSArray *parts;
+@property(nonatomic, strong) NSOutputStream *outputStream;
+@property(nonatomic, strong) NSInputStream *inputStream;
 
 @property(nonatomic, assign) NSTimeInterval connectTimeout;
+@property(nonatomic, assign) SKPSMTPState sendState;
+@property(nonatomic, assign) BOOL isSecure;
+@property(nonatomic, strong) NSMutableString *inputString;
 
-@property(nonatomic, assign) id <SKPSMTPMessageDelegate> delegate;
+@property(nonatomic, weak) id <SKPSMTPMessageDelegate> delegate;
 
 - (BOOL)send;
 
