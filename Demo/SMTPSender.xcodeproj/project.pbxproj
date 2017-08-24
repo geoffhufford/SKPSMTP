@@ -18,6 +18,7 @@
 		BC06F8EA1F4F18E6001CC2F7 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = BC06F8E91F4F18E6001CC2F7 /* Main.storyboard */; };
 		BC06F8ED1F4F19D0001CC2F7 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = BC06F8EC1F4F19D0001CC2F7 /* ViewController.m */; };
 		BC7BBD7E1F4F15B600F668C6 /* Mailer.m in Sources */ = {isa = PBXBuildFile; fileRef = BC7BBD7D1F4F15B600F668C6 /* Mailer.m */; };
+		C801FEF49EF420DC674BBDF8 /* libPods-SMTPSender.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 880CC76CAF019D3876695D6F /* libPods-SMTPSender.a */; };
 		F1A6ABD80EB6E95300BA50E8 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F1A6ABD70EB6E95300BA50E8 /* CFNetwork.framework */; };
 		F1A6ACC90EB7B2B300BA50E8 /* test.vcf in Resources */ = {isa = PBXBuildFile; fileRef = F1A6ACC80EB7B2B300BA50E8 /* test.vcf */; };
 /* End PBXBuildFile section */
@@ -30,6 +31,9 @@
 		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		32CA4F630368D1EE00C91783 /* SMTPSender_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SMTPSender_Prefix.pch; sourceTree = "<group>"; };
+		403E924FC0F754C828F2E3A3 /* Pods-SMTPSender.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SMTPSender.debug.xcconfig"; path = "Pods/Target Support Files/Pods-SMTPSender/Pods-SMTPSender.debug.xcconfig"; sourceTree = "<group>"; };
+		4DD0EAF4941C9285EF702E32 /* Pods-SMTPSender.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SMTPSender.release.xcconfig"; path = "Pods/Target Support Files/Pods-SMTPSender/Pods-SMTPSender.release.xcconfig"; sourceTree = "<group>"; };
+		880CC76CAF019D3876695D6F /* libPods-SMTPSender.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-SMTPSender.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA2B6F20132F11520098E285 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		AA2C47CC133101AC008FDE01 /* HSK_CFUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = HSK_CFUtilities.h; path = ../SMTPLibrary/HSK_CFUtilities.h; sourceTree = SOURCE_ROOT; };
@@ -55,6 +59,7 @@
 				1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */,
 				1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */,
 				F1A6ABD80EB6E95300BA50E8 /* CFNetwork.framework in Frameworks */,
+				C801FEF49EF420DC674BBDF8 /* libPods-SMTPSender.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -83,7 +88,7 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		29B97314FDCFA39411CA2CEA /* CustomTemplate */ = {
+		29B97314FDCFA39411CA2CEA = {
 			isa = PBXGroup;
 			children = (
 				F1123CAD0EB8F89100DED5A8 /* Email (refresh from Handshake!) */,
@@ -92,6 +97,7 @@
 				29B97317FDCFA39411CA2CEA /* Resources */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
+				585A427F0A704FE555B97758 /* Pods */,
 			);
 			name = CustomTemplate;
 			sourceTree = "<group>";
@@ -122,8 +128,18 @@
 				F1A6ABD70EB6E95300BA50E8 /* CFNetwork.framework */,
 				1DF5F4DF0D08C38300B7A737 /* UIKit.framework */,
 				1D30AB110D05D00D00671497 /* Foundation.framework */,
+				880CC76CAF019D3876695D6F /* libPods-SMTPSender.a */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		585A427F0A704FE555B97758 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				403E924FC0F754C828F2E3A3 /* Pods-SMTPSender.debug.xcconfig */,
+				4DD0EAF4941C9285EF702E32 /* Pods-SMTPSender.release.xcconfig */,
+			);
+			name = Pods;
 			sourceTree = "<group>";
 		};
 		F1123CAD0EB8F89100DED5A8 /* Email (refresh from Handshake!) */ = {
@@ -147,9 +163,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1D6058960D05DD3E006BFB54 /* Build configuration list for PBXNativeTarget "SMTPSender" */;
 			buildPhases = (
+				FA20C1D5DED16086C5F4CFB1 /* [CP] Check Pods Manifest.lock */,
 				1D60588D0D05DD3D006BFB54 /* Resources */,
 				1D60588E0D05DD3D006BFB54 /* Sources */,
 				1D60588F0D05DD3D006BFB54 /* Frameworks */,
+				D0E219D5D8F38007FA6D3464 /* [CP] Embed Pods Frameworks */,
+				0AC7D7505A33A0F5C91D49E1 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -175,7 +194,8 @@
 			knownRegions = (
 				en,
 			);
-			mainGroup = 29B97314FDCFA39411CA2CEA /* CustomTemplate */;
+			mainGroup = 29B97314FDCFA39411CA2CEA;
+			productRefGroup = 19C28FACFE9D520D11CA2CBB /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -197,6 +217,57 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		0AC7D7505A33A0F5C91D49E1 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-SMTPSender/Pods-SMTPSender-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		D0E219D5D8F38007FA6D3464 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-SMTPSender/Pods-SMTPSender-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		FA20C1D5DED16086C5F4CFB1 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-SMTPSender-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		1D60588E0D05DD3D006BFB54 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -217,6 +288,7 @@
 /* Begin XCBuildConfiguration section */
 		1D6058940D05DD3E006BFB54 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 403E924FC0F754C828F2E3A3 /* Pods-SMTPSender.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -234,6 +306,7 @@
 		};
 		1D6058950D05DD3E006BFB54 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4DD0EAF4941C9285EF702E32 /* Pods-SMTPSender.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
