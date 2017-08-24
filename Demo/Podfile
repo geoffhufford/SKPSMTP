@@ -1,17 +1,9 @@
-source 'https://bitbucket.org/pvindzigelskis/specs'
-source 'https://github.com/CocoaPods/Specs.git'
-
 platform :ios, '8.0'
-use_frameworks!
 
-def briefcase_pods
+def all_pods
     pod 'SMTPLibrary', :path => '../'
 end
 
-target 'BriefcaseDemo' do
-    briefcase_pods
-end
-
-target 'ActionExtensionDemo' do
-    briefcase_pods
+target 'SMTPSender' do
+    all_pods
 end
