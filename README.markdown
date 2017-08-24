@@ -1,6 +1,10 @@
 # About skpsmtpmessage
 
 A quick SMTP client for iOS. Fork of [skpsmtpmessage](https://github.com/phuongnq/SKPSMTP), by Ian Baird.
+- Updated files to ARC, added bridging where needed;
+- Got rid of all compile warnings;
+- Updated Base64 encoding/decoding to use Apple's new ones from NSData
+- Updated demo project to be iOS 8 and up compatable
 
 To use this in your app, add the files in the SMTPLibrary directory to your project.
 
