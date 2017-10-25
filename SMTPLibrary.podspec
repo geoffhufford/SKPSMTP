@@ -16,8 +16,11 @@ Pod::Spec.new do |s|
   s.license      = "MIT"
   # s.license      = { :type => "MIT", :file => "FILE_LICENSE" }
   s.authors            = { "Ian Baird, modified by Paulius Vindzigelskis" => ""}
-  s.platform     = :ios, "8.0"
+  # s.platform     = :ios, "8.0"
   s.source       = { :git => "https://github.com/PauliusVindzigelskis/SKPSMTP.git", :tag => s.version }
+
+  s.ios.deployment_target = '8.0'
+  s.osx.deployment_target = '10.10'
 
   s.source_files  = "SMTPLibrary", "SMTPLibrary/**/*.{h,m}"
   s.public_header_files = "SMTPLibrary/**/*.h"
