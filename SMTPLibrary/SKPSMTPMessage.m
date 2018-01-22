@@ -340,7 +340,10 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
             if(len) 
             {
                 NSString *tmpStr = [[NSString alloc] initWithBytes:buf length:len encoding:NSUTF8StringEncoding];
-                [self.inputString appendString:tmpStr];
+ 
+				//CRASH FIX: https://github.com/jetseven/skpsmtpmessage/issues/26
+                if (tmpStr != nil)
+					[self.inputString appendString:tmpStr];
                 
                 [self parseBuffer];
             }
