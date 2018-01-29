@@ -822,7 +822,13 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
             break;
         }
     }
-    self.inputString = [[self.inputString substringFromIndex:[scanner scanLocation]] mutableCopy];
+
+// Crash Fix: crash was logged in Sentry.
+    // Application threw exception NSRangeException: *** -[__NSCFString substringFromIndex:]: Index 51 out of bounds; string length 2
+    // Not sure how to test this as it is called several times, and debugging causes a timeout.
+    if (scanner.scanLocation < self.inputString.length) {
+        self.inputString = [[self.inputString substringFromIndex:[scanner scanLocation]] mutableCopy];
+    }
     
     if (messageSent)
     {
